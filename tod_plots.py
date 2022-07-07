@@ -14,13 +14,15 @@ import h5py
 
 
 
-def tod24h(w_path, date, horn, ti=0, tf=24,title=None): 
+def plot_tod(w_path, date, horn, ti=0, tf=24,title=None): 
 	'''
-	Gera a imagem de 24h de observação a partir de TODs (um para cada hora).
+	Generates the plot for a TOD from hourly divided files, 
+	which names must follow the format:
+	'bingo_tod_horn_{HORN}_{YEAR}{MONTH}{DAY}_{HOUR}0000.h5'
 	
-	w_path: caminho dos TODs (.h5).
-	date: formato '2018-01-01'.
-	horns: quantidade de cornetas.
+	w_path: TODs path (only the paths).
+	date: date in format 'yyyy-mm-dd'.
+	horns: horns quantity.
 	'''
 	
 	tods_matrix = []
@@ -33,7 +35,7 @@ def tod24h(w_path, date, horn, ti=0, tf=24,title=None):
 	day = date.split()[0].split('-')[2]
 	path = w_path + year + "/" + month + "/" + day + "/"
 		
-	print("Coletando dados dos TODs...")
+	print("Collecting data from all TODs...")
 	for i in range(tf-ti):
 		t = ti+i
 		arx = 'bingo_tod_horn_' + str(horn) + '_' + year + month + day + '_{:02d}0000.h5'.format(t)				  
@@ -44,16 +46,16 @@ def tod24h(w_path, date, horn, ti=0, tf=24,title=None):
 		tods_matrix.append(tods)
 		times_matrix.append(times)
 	
-	# Unindo tudo em uma matriz		
+	# Concatanating TODs
 	conc_tods = tods_matrix[horn][0]
 	for i in range(1,tf-ti):
 		tod = tods_matrix[horn][i]
 		conc_tods = np.concatenate((conc_tods,tod), axis = 1)
 
-	print("Criando diretório tod_plots...")
+	print("Creating directory tod_plots...")
 	os.system('mkdir -p ' + path + 'tod_plots/')
 	
-	print ("Gerando imagem da corneta --> " + str(horn))
+	print ("Generating horn image --> " + str(horn))
 	if title==None: title = "Horn " + str(horn) + " " + year + "/" + month + "/" + day
 	plt.imshow(conc_tods, aspect="auto", origin="lower", extent=(ti,tf,980,981))#,980, 1260))
 	plt.title(title)
@@ -65,14 +67,15 @@ def tod24h(w_path, date, horn, ti=0, tf=24,title=None):
 	
 
 
-def tod_channel(w_path, date, horn, channel=0, ti=0, tf=24, title=None):
+def plot_channel(w_path, date, horn, channel=0, ti=0, tf=24, title=None):
 	'''
-	Gera o grafico de um canal especifico de 24h de observação a partir de 
-	TODs (um para cada hora).
+	Generates the plot for a specific frequency channel from hourly divided files, 
+	which names must follow the format:
+	'bingo_tod_horn_{HORN}_{YEAR}{MONTH}{DAY}_{HOUR}0000.h5'
 	
-	w_path: caminho dos TODs (.h5).
-	date: formato '2018-01-01'.
-	horns: quantidade de cornetas.
+	w_path: TODs path (only the paths).
+	date: date in format 'yyyy-mm-dd'.
+	horns: horns quantity.
 	'''
 	
 	mini = []
@@ -87,7 +90,7 @@ def tod_channel(w_path, date, horn, channel=0, ti=0, tf=24, title=None):
 	day = date.split()[0].split('-')[2]
 	path = w_path + year + "/" + month + "/" + day + "/"
 		
-	print("Coletando dados dos TODs...")
+	print("Collecting data from all TODs...")
 	for i in range(tf-ti):
 		t = ti+i
 		arx = 'bingo_tod_horn_' + str(horn) + '_' + year + month + day + '_{:02d}0000.h5'.format(t)				  
@@ -103,21 +106,21 @@ def tod_channel(w_path, date, horn, channel=0, ti=0, tf=24, title=None):
 	mini = np.min(mini)
 	maxi = np.max(maxi)			
 	
-	# Unindo tudo em uma matriz		
-	conc_tods = tods_matrix[0][0]#[horn][0]
+	# Concatanating TODs
+	conc_tods = tods_matrix[0][0]
 	for i in range(tf-ti-1):
-		tod = tods_matrix[0][i+1]#[horn][i+1]
+		tod = tods_matrix[0][i+1]
 		conc_tods = np.concatenate((conc_tods,tod), axis = 1)
 
-	print("Criando diretório tod_plots...")
+	print("Creating directory tod_plots...")
 	os.system('mkdir -p ' + path + 'tod_plots/')
 	if title==None: 
 		title = ("Horn " + str(horn) + " Channel " + str(channel) + " " + 
 				 year + "/" + month + "/" + day)
 	
-	print ("Gerando imagem da corneta --> " + str(horn))
 	temp_plot = True
-	db_plot = True
+	db_plot = False
+	print ("Generating horn image --> " + str(horn))
 	if temp_plot:
 		plt.plot(np.linspace(ti,tf,len(conc_tods[channel])), 
 				 conc_tods[channel])
@@ -128,6 +131,7 @@ def tod_channel(w_path, date, horn, channel=0, ti=0, tf=24, title=None):
 		plt.savefig(path + "tod_plots/" + '24_bingo_tod_horn_' + str(horn) + 
 					'_channel_' + str(channel) + '_' + year + month + day + ".png")
 		plt.close()
+		
 	if db_plot:
 		plt.plot(np.linspace(ti,tf,len(conc_tods[channel])),
 				 20*np.log10(abs(conc_tods[channel])))
@@ -154,7 +158,7 @@ def plot_diff(tod_path_1, tod_path_2, date, horn, output_file, title):
 	times_matrix = []
 	tods = []
 	times = []
-	print("Coletando dados dos TODs...")
+	print("Collecting data from all TODs...")
 	for i in range(24):
 		arx = 'bingo_tod_horn_' + str(horn) + '_' + year + month + day + '_{:02d}0000.h5'.format(i)
 		with h5py.File(path1 + arx, "r" ) as tod_file:			
@@ -187,7 +191,7 @@ def plot_diff(tod_path_1, tod_path_2, date, horn, output_file, title):
 	
 	tod_diff = tod_1 - tod_2
 	
-	print ("Gerando imagem...")
+	print ("Generating image...")
 	plt.imshow(tod_diff, aspect="auto", origin="lower", extent=(0,24 ,980, 1260))
 	plt.title(title)
 	plt.xlabel("Time (h)")
@@ -283,7 +287,7 @@ if __name__=="__main__":
 	horn = 0
 	
 	tod_path = '/home/joao/Documentos/cosmologia/hide_and_seek/resultados/TOD/normalization_tests/nside512/zernike_cubic_cut/'
-	#tod_channel(tod_path, date, horn, ti=5,tf=6)
+	#plot_channel(tod_path, date, horn, ti=5,tf=6)
 	
 	paths = ["/home/joao/Documentos/cosmologia/hide_and_seek/resultados/TOD/normalization_tests/nside{}/gaussian_cut_norm/",
 			 "/home/joao/Documentos/cosmologia/hide_and_seek/resultados/TOD/normalization_tests/nside{}/gaussian_cut_not_norm/",
@@ -291,8 +295,8 @@ if __name__=="__main__":
 			 "/home/joao/Documentos/cosmologia/hide_and_seek/resultados/TOD/normalization_tests/nside{}/zernike_linear_cut/",
 			 "/home/joao/Documentos/cosmologia/hide_and_seek/resultados/TOD/normalization_tests/nside{}/zernike_nearest_cut/"]
 	for tod_path in paths:
-		tod24h(tod_path.format(256), date, horn, ti=5, tf=6)
-		tod_channel(tod_path.format(256), date, horn, ti=5, tf=6)
+		plot_tod(tod_path.format(256), date, horn, ti=5, tf=6)
+		plot_channel(tod_path.format(256), date, horn, ti=5, tf=6)
 
 #	path1 = "/home/joao/Documentos/cosmologia/hide_and_seek/resultados/TOD/ame_zernike/zernike_30_MINUS304_nside512_nearest/"
 #	path2 = "/home/joao/Documentos/cosmologia/hide_and_seek/resultados/TOD/ame_zernike/gaussian_512/"
