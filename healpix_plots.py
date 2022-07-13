@@ -46,80 +46,43 @@ def healpix_plot(map_file, fig_name, title, channel=0, unit =r'Temperature (mK)'
 	hp.gnomview(maps[channel], title= title + " (zoom)", rot= (0,-17),reso= 5, xsize= 400, ysize= 200)
 	plt.savefig(destination_path + title + "_zoom.png")
 	plt.close()
-
-
-def data_prints():
-    
-	source_path = "/home/otobone/Documentos/ic/projeto_karin/hide-master/hide/data/sky/"
-	destination_path = "/home/otobone/Documentos/ic/projeto_karin/exercicios/plots_healpix/foregrounds/"
-
-	
-	file_names = ["freqs_foregrounds_test", "maps_foregrounds_test"]
-	
-	for file_name in file_names:
-		path_map = os.path.join(source_path, file_name + ".fits")
-		map0 = pyfits.getdata(path_map)
-		hdul = pyfits.open(os.path.join(source_path, file_name + ".fits"))
-
-		print(map0.shape)
-		# print(hdul.data)
 	
 	
 	
-def soma_comp():
-	
-	source_path = "/home/otobone/Documentos/ic/projeto_karin/hide-master/hide/data/sky/"
-	destination_path = "/home/otobone/Documentos/ic/projeto_karin/exercicios/plots_healpix/plots_sky/"
-
-	# os.system("cd " + source_path)
-	file_names = ["freqs_foregrounds_test.fits","delta_Nside_128_Nseed_10001.fits","foreground_cube_hs_test.fits"]
-	# file_names = os.listdir(os.getcwd())
-	# print(file_names)
-	# file_names = ["freqs_foregrounds_test.fits", "ame_cube_hs_test.fits"]
-	freq_name = file_names.pop(0) # O metodo pop arranca o elemento escolhido da lista.
-	freq_list = pyfits.getdata(source_path + freq_name)
-	# print(freq_list)
-	map_soma = np.zeros(pyfits.getdata(source_path + file_names[1]).shape)
-	
-	titulo = "soma"
-	for file_name in file_names:
-		tira_ = file_name.split("_")[0]
-
-		titulo = titulo + "_" + tira_
-
-	Npix = hp.nside2npix(128)
-	soma_cube = np.zeros((30,Npix))
-
-	os.system("mkdir " + destination_path+ titulo + "/" )
-	for i in range (len(freq_list)):
-		for file_name in file_names:
-			maps = pyfits.getdata(source_path + file_name)
-			map_soma[i] += maps[i]
-
-		soma_cube[i,:] = map_soma[i]				
-		
-		print ("lendo-->", i)  
-		
-
-	# hp.mollview(map_soma[i])
-	# plt.savefig(destination_path + titulo + "/" + titulo + "_" + str(freq_list[i]) + ".png")
-	# plt.close()
-	
-	pyfits.writeto(source_path + 'components_maps_cube.fits', soma_cube)
-		
-	print("Imagens salvas com sucesso no diretorio {0}".format(destination_path))
-
-
-
-def h5_map_plot(path, map_file, title):
+def add_maps(map_list, final_fits):
 	'''
-	Plota o mapa de um único HDF5.
+	Takes a list of maps, adds them together and writes to a FITS file.
+	All of the files must contain the same number of channels.
+	
+	map_list: list of str, contains the name of all the FITS files to be added.
+	final_fits: str, name of the final FITS to be written 
+	'''
+	
+	added_map = pyfits.getdata(map_list[0])
+	
+	print("Verifying Nside and Nchannels and adding maps...")
+	for i in range(1,len(map_list)):
+		map_i = pyfits.getdata(map_list[i])
+		assert added_map.shape==map_i.shape
+		added_map+=map_i
+
+	destination_path = "/".join(final_fits.split("/")[:-1]+[""])
+	os.system("mkdir -p " + destination_path )
+	pyfits.writeto(final_fits, added_map)
+	print("FITS files successfully written to {}".format(final_fits))
+
+
+
+def h5_map_plot(path, map_file, title, channel=0):
+	'''
+	Plots a Healpix map from a HDF5 file.
 	'''
 	import h5py
 
-	print("Criando diretorio map_plots...")
+	print("Making directory map_plots...")
 	os.system('mkdir -p ' + path + 'map_plots/')
-	print("Abrindo arquivo ", map_file)
+	
+	print("Opening file ", map_file)
 	fp = h5py.File(path + map_file, 'r')	
 	mapa = fp['MAPS'][()]
 	counts = fp['COUNTS'][()]
@@ -128,13 +91,12 @@ def h5_map_plot(path, map_file, title):
 	mapa[counts==0] = hp.UNSEEN
 
 	plt.figure(0)
-	hp.mollview(mapa[0, 0, :], cmap="jet")
+	hp.mollview(mapa[channel, 0, :], cmap="jet")
 	plt.title(title)
-    #plt.show()
 	plt.savefig(path + "map_plots/" + title + ".png")
 	plt.close()
 		
-	hp.gnomview(mapa[0, 0, :], title= title + " (zoom)", unit="(K)", rot=(0,-17), cmap='jet', reso=5, xsize=400, ysize=200)
+	hp.gnomview(mapa[channel, 0, :], title= title + " (zoom)", unit="(K)", rot=(0,-17), cmap='jet', reso=5, xsize=400, ysize=200)
 	#plt.show()
 	plt.savefig(path + "map_plots/" + title + "_zoom.png")
 	plt.close()
@@ -142,18 +104,15 @@ def h5_map_plot(path, map_file, title):
 
 
 
-def combine_h5_horn_maps(path, map_file_format, title, horns, file_name=0, channel=0):
+def combine_h5_horn_maps(path, map_file_format, title, horns, file_name=None, channel=0):
 	'''
-	Essa funcao pega diversos mapas individuais das cornetas do Bingo
-	e gera um mapa que é a soma ponderada pelas contagens (hits) desses
-	mapas.
+	This function takes individual maps from BINGO horns and generates one map which is the
+	mean of the pixels weighted by its respective hits from each map. 
 	'''
 	
 	import h5py
 
-	# Reading files
-
-	print("Criando diretorio map_plots...")
+	print("Making directory map_plots...")
 	os.system('mkdir -p ' + path + 'map_plots/')
 	
 	fp = h5py.File(path + map_file_format.format(0), 'r')
@@ -161,40 +120,33 @@ def combine_h5_horn_maps(path, map_file_format, title, horns, file_name=0, chann
 	counts = fp['COUNTS'][()]
 	fp.close()
 
-
 	# Generating map
-
 	maps = np.zeros(mapa[:,0,:].shape)
 	counts_total = np.zeros(counts[0,0,:].shape)
 
+	# Reading files
 	for i in range(horns):
-		print("Coletando dados da corneta {}".format(i))
+		print("Collecting data from horn {}".format(i))
 		fp = h5py.File(path+map_file_format.format(i), 'r')
 		mapa = fp['MAPS'][()]
 		counts = fp['COUNTS'][()]
 		fp.close()
-
 		maps += mapa[:,0,:]
 		counts_total += counts[0,0,:]
 	
-	print(counts_total.shape)
-	mask = np.where(counts_total == 0, 1, counts_total)
+	#print(counts_total.shape)
+	mask = np.where(counts_total==0, 1, counts_total)
 	maps[channel, :][counts_total==0] = hp.UNSEEN
 
-
 	# Creating the map file
-
-	if file_name==0: file_name=title
-
-	print("Criando arquivo " + file_name + ".hdf")
+	if file_name==None: file_name=title
+	print("Generating file " + file_name + ".hdf")
 	h5f = h5py.File(path + file_name + ".hdf", 'w')
 	h5f.create_dataset('MAPS', data=maps)
 	h5f.create_dataset('COUNTS', data=np.array([[counts_total, counts_total]]))
 	h5f.close()
 	
-
 	# Plotting mollview and gnomview
-
 	print("Plotando imagem do canal " + str(channel))
 	plt.figure(0)
 	hp.mollview(maps[channel, :], cmap="jet", title=title, unit="Temperature (K)")#, min=-0.02, max=10)
@@ -268,12 +220,6 @@ def residuals(map_path_1, map_path_2, title, figure_name, channel=0, rel=False):
 		
 
 if __name__=="__main__":
-        
-	if False:
-	                 
-		for i in range(28):
-			h5_map_plot("/home/otobone/Documentos/ic/projeto_karin/resultados/healpix_seek/drectangular/2d/", "bingo_maps_horn_{}.hdf".format(i), "bingo_maps_horn_{}".format(i))
-
 
 	if True:
 	
