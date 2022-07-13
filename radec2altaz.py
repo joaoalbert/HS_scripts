@@ -93,6 +93,73 @@ def RAdec2AltAz(RA, dec, latitude, longitude, elevation, time):
 
 
 
+def plotdisp(txt_path, perfil, displacement, d_path=None):
+	'''
+	Recebe um txt com o numero da corneta, o RA e a DEC,
+	e plota a disposição para um displacement especifico.
+	(Não tem a ver com TOD.)
+	
+	txt_path: diretorio com o txt.
+	perfil: "hexagonal", "rectangular", "drectangular".
+	displacement: -2, -1, 0, 1, 2.
+	d_path: destination path.
+	'''
+	
+	if d_path==None: d_path = txt_path
+	
+	print ("Coletando RA (deg) e DEC (deg)...")
+	lines = np.loadtxt(txt_path + perfil + '.txt')
+	lines = lines[lines[:,0].argsort()] # Organizando por numero da corneta
+	
+	RA = []
+	DEC = []
+	NUMBER = []	
+	
+	if (perfil == 'hexagonal'):
+		displacement = 0 
+		for line in lines:
+			RA.append(line[1])
+			DEC.append(line[2])
+			NUMBER.append(line[0])
+	   
+	else:
+		resto = ((displacement + 3) % 5)
+		for line in lines:
+			if (line[0] % 5 == resto):
+				RA.append(line[1])
+				DEC.append(line[2])
+				NUMBER.append(line[0] // 5 + 1)
+							
+	print("Plotando gráfico...")			
+	fig, ax = plt.subplots() 
+	ax.scatter(RA, DEC, s=1000)
+
+	for i in range (len(NUMBER)):
+		ax.annotate(int(NUMBER[i]), (RA[i], DEC[i]))
+	
+	
+	if (perfil == 'hexagonal'):
+	
+		plt.title(perfil.title())
+		plt.xlabel('RA (deg)')
+		plt.ylabel('DEC (deg)')
+		plt.savefig(d_path + perfil + '.png')
+
+	elif (perfil == 'rectangular'):
+	
+		plt.title(perfil.title() + ' ' + str(displacement) + 'd')
+		plt.xlabel('RA (deg)')
+		plt.ylabel('DEC (deg)')
+		plt.savefig(d_path + perfil + str(displacement) + 'd.png')
+
+	else:
+	
+		plt.title("Double Rectangular " + str(displacement) + 'd')
+		plt.xlabel('RA (deg)')
+		plt.ylabel('DEC (deg)')
+		plt.savefig(d_path + perfil + str(displacement) + 'd.png')
+
+
 
 if __name__=="__main__":
 
@@ -102,6 +169,19 @@ if __name__=="__main__":
 	perfil = 'drectangular.txt'
 	displacement = -2
 	date = '2018-01-01 19:47'
+	
+	
+
+	# l = ['hexagonal', 'drectangular', 'rectangular']
+	# for elements in l:
+
+	#	 if (elements == 'hexagonal'):
+	#		 plotdisp("/home/otobone/Documentos/ic/projeto_karin/exercicios/optical/", 'hexagonal', 0)
+	#	 else:
+	#		 for d in range(-2,3):
+				# plotdisp("/home/otobone/Documentos/ic/projeto_karin/exercicios/optical/", elements, d)
+				
+	#plotdisp("/home/joaoalb/Documents/Cosmologia/hide_and_seek/resultados/TOD/optical/", "rectangular", -2, "/home/joaoalb/Documents/Cosmologia/hide_and_seek/resultados/")
 
 
 	main(w_path, d_path, GEO, date, perfil, displacement)

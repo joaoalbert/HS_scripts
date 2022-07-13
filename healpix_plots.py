@@ -2,9 +2,9 @@
 
 '''
 Created on 14/07/2020
-Last update 10/2021
+Last update 07/2022
 
-Author: Carlos Otobone, João Alberto
+Author: João Alberto, Carlos Otobone
 '''
 
 import healpy as hp 
@@ -14,55 +14,38 @@ import os
 import astropy.io.fits as pyfits
 
 
-
-def gsm_plot():
-		
-	source_path = "/home/otobone/Documentos/ic/projeto_karin/hide/hide/data/gms/maps/"
-	destination_path = "/home/otobone/Documentos/ic/projeto_karin/exercicios/plots_healpix/plots_gsm/"
+def healpix_plot(map_file, fig_name, title, channel=0, unit =r'Temperature (mK)', mini=None, maxi=None):
+	'''
+	Takes a FITS file containing a sky cube and plots the map in the corresponding channel
+	in a Mollweide projection and Gnomonic projection (zoom).
 	
-	# lista = ["16","32"]
-	# freqs = [980]
-	lista = ["16","32","64"]
-	freqs = np.linspace(980,1280,61,endpoint=True)		
-	for i in lista:
-		for j in freqs:
-			
-			file_name = "gsm_" + str(int(j)) + ".0.fits"
-									
-			path_map = os.path.join(source_path + i, file_name)	
-			#print(path_map)
-			map0 = hp.read_map(path_map)
-			#hp.mollview(map0)
-			plt.savefig(destination_path + i + "/gsm_" + str(int(j)) + ".0.png")
-			# plt.show()
-			plt.close()
+	map_file: str, FITS file.
+	fig_name: str, name of the file for the PNG figure to be saved.
+	title: str, title to appear on top of the map.
+	channel: int, frequency channel to be plotted.
+	unit: str, map unit to appear on the colorbar.
+	
+	Optional:
+	mini: float, minimum range value.
+	maxi: float, maximum range value.
+	'''
 
-			#os.system("chmod a+rwx " + destination_path + i + "/gsm_" + str(int(j)) + ".0.png")
-
-	# map0 = hp.read_map("/home/otobone/Documentos/ic/projeto_karin/hide/hide/data/gsm/maps/16/gsm_980.0.fits")
-	# hp.mollview(map0)
-	# plt.show()
-
-
-
-def sky_plot(map_file, destination_path, titulo, channel = 0, mini = None, maxi = None, unidade =r'Temperature (mK)'):
-
-	os.system("mkdir " + destination_path + "/")
+	destination_path = "/".join(fig_name.split("/")[:-1]+[""])
+	os.system("mkdir -p " + destination_path + "/")
+	
+	print("Collecting healpix data from {}...".format(map_file))
 	maps = pyfits.getdata(map_file) 
-	print("Salvando imagens do healpix {0}...".format(map_file.split("/")[-1]))
 	
-	if mini == None and maxi == None: hp.mollview(maps[channel], title= titulo, unit=unidade, cmap ='jet')  
-	else: hp.mollview(maps[channel], title= titulo, unit=unidade, cmap ='jet', min = mini, max = maxi)
-
-	plt.savefig(destination_path + titulo + ".png")
-	# plt.show()
+	if mini == None and maxi == None: 
+		hp.mollview(maps[channel], title=title, unit=unit, cmap='jet')  
+	else: 
+		hp.mollview(maps[channel], title=title, unit=unit, cmap='jet', min=mini, max=maxi)
+	plt.savefig(fig_name)
 	plt.close()
-	hp.gnomview(maps[channel], title= titulo + " (zoom)", rot= (0,-17),reso= 5, xsize= 400, ysize= 200)
-	plt.savefig(destination_path + titulo + "_zoom.png")
+	
+	hp.gnomview(maps[channel], title= title + " (zoom)", rot= (0,-17),reso= 5, xsize= 400, ysize= 200)
+	plt.savefig(destination_path + title + "_zoom.png")
 	plt.close()
-		
-	# print("\nImagens salvas no diretorio {0}".format(destination_path))
-
 
 
 def data_prints():
@@ -315,7 +298,6 @@ if __name__=="__main__":
 
 
 	if False:
-	
 	
 		displacements = ["-2d", "2d", "2d_10days"]
 		mapmakings = ["filter_mapper"]
