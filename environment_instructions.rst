@@ -7,7 +7,9 @@ A) Creating Python Environment:
 	
 	$ python3 -m venv <env-name>
 	
-	in which <env-name> is the chosen name for the environment. The convention is "venv".
+	in which <env-name> is the chosen name for the environment. The convention is ".venv".
+	
+	Obs.: to run Ivy, Hide and Seek, Python3.8 specifically is required.
 	
 	3) To activate the environment:
 	
