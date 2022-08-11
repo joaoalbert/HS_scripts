@@ -3,13 +3,13 @@
 Authors: Carlos Otobone, João Alberto
 
 Created at: 10/08/2020
-Last Updated: October 2021
+Last Updated: August 2022
 '''
 
 
 import os
 import radec2altaz
-import plotar_tod as tod_plot
+import tod_plots as tod_plot
 import numpy as np
 
 
@@ -17,7 +17,7 @@ import numpy as np
 #.'.Função principal'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 #.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 
-def main(destination_path, GEO, date_fmt, days, initial_day=1):
+def main(destination_path, GEO, date_fmt, initial_day=1, final_day=5):
 	'''
 	Altera as altitudes e azimutes das cornetas do BINGO para cada
 	displacement (um displacement por dia) e roda o HIDE para cada
@@ -27,13 +27,15 @@ def main(destination_path, GEO, date_fmt, days, initial_day=1):
 	conter tambem o txt das coordenadas em RA, dec.
 	GEO: [lat, lon, el]. Posicao geografica de observacao.
 	date_fmt: "YYYY-MM-DD HH:MM". Data para conversao de coords.
-	days: int<=28. Numero de dias a serem observados.
 	initial_day: int<=28. Dia inicial a fazer a analise.
+	final_day: initial_day<int<=28. Dia final a fazer a analise.
 	'''
 
 	#.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 	#.'.Início'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 	#.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
+	
+	assert initial_day<final_day
 	
 	#.'.Lendo bingo.py'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 	with open(destination_path + 'hide/config/bingo.py','r') as bingo_read:
@@ -46,7 +48,7 @@ def main(destination_path, GEO, date_fmt, days, initial_day=1):
 		
 		
 	# Sem correcao para mais de um mes!!
-	for day in range (initial_day, days+1):
+	for day in range (initial_day, final_day+1):
 	
 		#.'.Convertendo coordenadas.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 		# Se o feixe for assimetrico, deve ser feita uma correcao do horario 
@@ -93,12 +95,11 @@ def main(destination_path, GEO, date_fmt, days, initial_day=1):
 if __name__=="__main__":
 
 	#working_path = "/home/joaoalb/Documents/Cosmologia/hide_and_seek/resultados/optical/"
-	destination_path = "/home/joao/Documentos/cosmologia/hide_and_seek/hide-master/"
+	destination_path = "/scratch/bingo/joao.barretos/hide_and_seek/hide-beam/"
 	#output_path      = "/home/joaoalb/Documents/Cosmologia/hide_and_seek/resultados/TOD/freq_bingo/K/noiseless/deg_2/"
 
 	GEO = [-7.0, -38.0, 0.0]									  # [telescope_latitude, telescope_longitude, telescope_elevation]
 	date_fmt = '2018-01-{:02d} 19:47'							  # 'YYYY-MM-DD HH:MM'
-	days = 5
-	initial_day = 1
+	initial_day, final_day = 1,5
 
-	main(destination_path, GEO, date_fmt, days, initial_day)
+	main(destination_path, GEO, date_fmt, initial_day, final_day)
