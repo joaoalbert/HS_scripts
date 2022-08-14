@@ -14,10 +14,13 @@ import numpy as np
 
 # Recebe o nome do arquivo config para alterar por meio de arg
 if len(os.sys.argv)>1:
-	day = int(os.sys.argv[1])
-	CONFIG_FILE = os.sys.argv[2]
+	day = int(os.sys.argv[1]) # dia unico a rodar
+	CONFIG_FILE = os.sys.argv[2] # arquivo tipo bingo.py a alterar
+	destination_path = os.sys.argv[3] # path ate hide local
 else:
 	CONFIG_FILE = "bingo.py"
+
+CONFIG_DIR = "hide/config/"
 	
 
 #.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
@@ -43,7 +46,8 @@ def main(destination_path, GEO, date_fmt, initial_day=1, final_day=5):
 	#.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 	
 	#.'.Lendo bingo.py'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
-	with open(destination_path + 'hide/config/bingo.py','r') as bingo_read:
+	config_path = os.path.join(destination_path, CONFIG_DIR, CONFIG_FILE)
+	with open(config_path,'r') as bingo_read:
 		bingo_lines = bingo_read.readlines()
 		bingo_read.close()
 	for line in bingo_lines:
@@ -71,7 +75,7 @@ def main(destination_path, GEO, date_fmt, initial_day=1, final_day=5):
 						 displacement)
 		
 		#.'.Alterando o programa bingo.py.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
-		bingo = open(destination_path + 'hide/config/bingo.py','w')
+		bingo = open(config_path,'w')
 		for line in bingo_lines:
 			if line[0:14] == "strategy_start":
 				bingo.write("strategy_start = '" + date[0:-6]+"-00:00:00" + 
@@ -100,7 +104,7 @@ def main(destination_path, GEO, date_fmt, initial_day=1, final_day=5):
 if __name__=="__main__":
 
 	#working_path = "/home/joaoalb/Documents/Cosmologia/hide_and_seek/resultados/optical/"
-	destination_path = "/home/joao/Documentos/cosmologia/sdumont/multi_requeue/hide/"
+	#destination_path = "/home/joao/Documentos/cosmologia/sdumont/multi_requeue/hide/"
 	#output_path      = "/home/joaoalb/Documents/Cosmologia/hide_and_seek/resultados/TOD/freq_bingo/K/noiseless/deg_2/"
 
 	GEO = [-7.0, -38.0, 0.0]									  # [telescope_latitude, telescope_longitude, telescope_elevation]
