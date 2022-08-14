@@ -9,9 +9,16 @@ Last Updated: August 2022
 
 import os
 import radec2altaz
-import tod_plots as tod_plot
+#import tod_plots as tod_plot
 import numpy as np
 
+# Recebe o nome do arquivo config para alterar por meio de arg
+if len(os.sys.argv)>1:
+	day = int(os.sys.argv[1])
+	CONFIG_FILE = os.sys.argv[2]
+else:
+	CONFIG_FILE = "bingo.py"
+	
 
 #.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 #.'.Função principal'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
@@ -34,8 +41,6 @@ def main(destination_path, GEO, date_fmt, initial_day=1, final_day=5):
 	#.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 	#.'.Início'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 	#.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
-	
-	assert initial_day<final_day
 	
 	#.'.Lendo bingo.py'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 	with open(destination_path + 'hide/config/bingo.py','r') as bingo_read:
@@ -79,8 +84,8 @@ def main(destination_path, GEO, date_fmt, initial_day=1, final_day=5):
 		bingo.close()
 
 		#.'.Executando o run_hide.py'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
-		os.chdir(destination_path)
-		os.system('python3 run_hide.py')
+		#os.chdir(destination_path)
+		#os.system('python3 run_hide.py')
 		
 		#.'.Plotando o TOD.'.'.'..'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'.'#
 		#tod_plot.tod24h(output_path, date[0:10], 0) #plotando só a corneta 1
@@ -95,11 +100,11 @@ def main(destination_path, GEO, date_fmt, initial_day=1, final_day=5):
 if __name__=="__main__":
 
 	#working_path = "/home/joaoalb/Documents/Cosmologia/hide_and_seek/resultados/optical/"
-	destination_path = "/scratch/bingo/joao.barretos/hide_and_seek/hide-beam/"
+	destination_path = "/home/joao/Documentos/cosmologia/sdumont/multi_requeue/hide/"
 	#output_path      = "/home/joaoalb/Documents/Cosmologia/hide_and_seek/resultados/TOD/freq_bingo/K/noiseless/deg_2/"
 
 	GEO = [-7.0, -38.0, 0.0]									  # [telescope_latitude, telescope_longitude, telescope_elevation]
 	date_fmt = '2018-01-{:02d} 19:47'							  # 'YYYY-MM-DD HH:MM'
-	initial_day, final_day = 1,5
+	initial_day, final_day = day, day
 
 	main(destination_path, GEO, date_fmt, initial_day, final_day)
