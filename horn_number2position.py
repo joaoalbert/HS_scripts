@@ -42,19 +42,19 @@ def fits_from_pos(horn_pos, freq="980GHz", Npoints=101, jobNamePrefix="Retangula
 	return fits_files
 	
 	
-def fits_from_disp_file(disp_txt, d, freq="980GHz", Npoints=101, jobNamePrefix="Retangular"):
+def fits_from_disp_file(disp_txt, d, outtxt, freq="980GHz", Npoints=101, jobNamePrefix="Retangular"):
 	
 	horn_pos = pos_from_disp_file(disp_txt, d)
 	fits_files = fits_from_pos(horn_pos, freq, Npoints, jobNamePrefix)
-	
+	np.savetxt(outtxt, fits_files, fmt="%s")
 	return fits_files
 
 	
 if __name__=="__main__":
 	
-	disp_txt = "/home/joao/Documentos/cosmologia/hide_and_seek/resultados/optical/drectangular.txt"
-	d = -2
-
-	fits_files = fits_from_disp_file(disp_txt, d, freq="980GHz", Npoints=101, jobNamePrefix="Retangular")
+	disp_txt = "/scratch/bingo/joao.barretos/hide_and_seek/hide-beam/drectangular.txt"
+	d =2 
+	outtxt = "all_horns_fits_{}.txt".format(d)
+	fits_files = fits_from_disp_file(disp_txt, d, outtxt, freq="980GHz", Npoints=101, jobNamePrefix="Retangular")
 	for ff in fits_files:
 		print(ff)
