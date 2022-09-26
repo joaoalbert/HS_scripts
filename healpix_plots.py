@@ -37,7 +37,7 @@ def healpix_plot(map_file, fig_name, title, channel=0, unit =r'Temperature (mK)'
 	maps = pyfits.getdata(map_file) 
 	
 	if mini == None and maxi == None: 
-		hp.mollview(maps[channel], title=title, unit=unit, cmap='jet')  
+		hp.mollview(maps[channel], title=title, unit=unit, cmap='jet')	
 	else: 
 		hp.mollview(maps[channel], title=title, unit=unit, cmap='jet', min=mini, max=maxi)
 	plt.savefig(fig_name)
@@ -185,7 +185,7 @@ def residuals(map_path_1, map_path_2, title, figure_name, channel=0, rel=False):
 	type2 = map_path_2.split(".")[-1]
 	
 	if type1=="hdf":		map_1 = h5py.File(map_path_1, "r")["MAPS"][()][channel]
-	elif type1=="fits": 	map_1 = pyfits.getdata(map_path_1)[channel]
+	elif type1=="fits":	map_1 = pyfits.getdata(map_path_1)[channel]
 	else: print("Invalid type: "+type1)
 	
 	if type2=="hdf":		map_2 = h5py.File(map_path_2, "r")["MAPS"][()][channel]
@@ -221,7 +221,19 @@ def residuals(map_path_1, map_path_2, title, figure_name, channel=0, rel=False):
 
 if __name__=="__main__":
 
+
 	if True:
+
+		file_fmt = "bingo_maps_horn_{}.hdf"
+		file_name = "bingo_maps_28_horns"
+
+		file_path = "/scratch/bingo/joao.barretos/hide_and_seek/resultados/healpix/gaussian_256_auto/"
+		title = "Reconstructed Map - Gaussian Beam"
+
+		combine_h5_horn_maps(file_path, file_fmt, title, 28, file_name)
+
+
+	if False:
 	
 		file_fmt = "bingo_maps_horn_{}.hdf"
 		file_name = "bingo_maps_28_horns"

@@ -53,7 +53,7 @@ def plot_tod(tods_path, date, horn, hi=0, hf=23,title=None):
 	'''
 	
 	year, month, day = date_split(date)
-	path = tods_path + year + "/" + month + "/" + day + "/"
+	path = os.path.join(tods_path, year, month, day)
 		
 	file_time_fmt = TOD_FILE_FORMAT.format(horn=horn, yyyy=year, mm=month, dd=day)
 	path_time_fmt = os.path.join(path, file_time_fmt)
@@ -86,7 +86,7 @@ def plot_channel(tods_path, date, horn, channel=0, hi=0, hf=24, title=None):
 	'''
 	
 	year, month, day = date_split(date)
-	path = tods_path + year + "/" + month + "/" + day + "/"
+	path = os.path.join(tods_path, year, month, day)
 	
 	file_time_fmt = TOD_FILE_FORMAT.format(horn=horn, yyyy=year, mm=month, dd=day)
 	path_time_fmt = os.path.join(path, file_time_fmt)
@@ -104,6 +104,7 @@ def plot_channel(tods_path, date, horn, channel=0, hi=0, hf=24, title=None):
 	temp_plot = True
 	db_plot = False
 	print ("Generating horn image --> " + str(horn))
+	figname = os.path.join(path, "tod_plots/", '24_bingo_tod_horn_{}_channel_{}_{}{}{}.png'.format(horn, channel, year, month, day))
 	if temp_plot:
 		seconds = np.linspace(hi,hf,len(tods_matrix[channel]))
 		plt.plot(seconds, tods_matrix[channel])
@@ -111,8 +112,7 @@ def plot_channel(tods_path, date, horn, channel=0, hi=0, hf=24, title=None):
 		plt.xlabel("Time (h)")
 		#plt.xlim(5.1,5.5)
 		plt.ylabel("Temperature (K)")
-		plt.savefig(path + "tod_plots/" + '24_bingo_tod_horn_' + str(horn) + 
-					'_channel_' + str(channel) + '_' + year + month + day + ".png")
+		plt.savefig(figname)
 		plt.close()
 		
 	if db_plot:
@@ -122,8 +122,7 @@ def plot_channel(tods_path, date, horn, channel=0, hi=0, hf=24, title=None):
 		plt.xlabel("Time (h)")
 		#plt.xlim(5.1,5.5)
 		plt.ylabel("Amplitude (dB)")
-		plt.savefig(path + "tod_plots/" + '24_bingo_tod_amplitude_horn_' + str(horn) + 
-					'_channel_' + str(channel) + '_' + year + month + day + ".png")
+		plt.savefig(figname)
 		plt.close()
 
 
@@ -163,8 +162,9 @@ if __name__=="__main__":
 	date = '2018-01-01'
 	horn = 0
 	
-	tod_path = "/home/joao/Documentos/cosmologia/hide_and_seek/resultados/TOD/teste/"
-	plot_channel(tod_path, date, horn, hi=5,hf=6)
+	tod_path = "/scratch/bingo/joao.barretos/hide_and_seek/resultados/TOD/teste/"
+	plot_tod(tod_path, date, horn)
+	#plot_channel(tod_path, date, horn, hi=5,hf=6)
 	
 
 	
